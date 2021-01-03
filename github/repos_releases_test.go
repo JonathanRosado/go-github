@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
