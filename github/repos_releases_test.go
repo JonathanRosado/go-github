@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -398,91 +397,92 @@ func TestRepositoriesService_DeleteReleaseAsset(t *testing.T) {
 	}
 }
 
-func TestRepositoriesService_UploadReleaseAsset(t *testing.T) {
-	var (
-		defaultUploadOptions     = &UploadOptions{Name: "n"}
-		defaultExpectedFormValue = values{"name": "n"}
-		mediaTypeTextPlain       = "text/plain; charset=utf-8"
-	)
-	uploadTests := []struct {
-		uploadOpts         *UploadOptions
-		fileName           string
-		expectedFormValues values
-		expectedMediaType  string
-	}{
-		// No file extension and no explicit media type.
-		{
-			defaultUploadOptions,
-			"upload",
-			defaultExpectedFormValue,
-			defaultMediaType,
-		},
-		// File extension and no explicit media type.
-		{
-			defaultUploadOptions,
-			"upload.txt",
-			defaultExpectedFormValue,
-			mediaTypeTextPlain,
-		},
-		// No file extension and explicit media type.
-		{
-			&UploadOptions{Name: "n", MediaType: "image/png"},
-			"upload",
-			defaultExpectedFormValue,
-			"image/png",
-		},
-		// File extension and explicit media type.
-		{
-			&UploadOptions{Name: "n", MediaType: "image/png"},
-			"upload.png",
-			defaultExpectedFormValue,
-			"image/png",
-		},
-		// Label provided.
-		{
-			&UploadOptions{Name: "n", Label: "l"},
-			"upload.txt",
-			values{"name": "n", "label": "l"},
-			mediaTypeTextPlain,
-		},
-		// No label provided.
-		{
-			defaultUploadOptions,
-			"upload.txt",
-			defaultExpectedFormValue,
-			mediaTypeTextPlain,
-		},
-	}
 
-	client, mux, _, teardown := setup()
-	defer teardown()
+// func TestRepositoriesService_UploadReleaseAsset(t *testing.T) {
+// 	var (
+// 		defaultUploadOptions     = &UploadOptions{Name: "n"}
+// 		defaultExpectedFormValue = values{"name": "n"}
+// 		mediaTypeTextPlain       = "text/plain; charset=utf-8"
+// 	)
+// 	uploadTests := []struct {
+// 		uploadOpts         *UploadOptions
+// 		fileName           string
+// 		expectedFormValues values
+// 		expectedMediaType  string
+// 	}{
+// 		// No file extension and no explicit media type.
+// 		{
+// 			defaultUploadOptions,
+// 			"upload",
+// 			defaultExpectedFormValue,
+// 			defaultMediaType,
+// 		},
+// 		// File extension and no explicit media type.
+// 		{
+// 			defaultUploadOptions,
+// 			"upload.txt",
+// 			defaultExpectedFormValue,
+// 			mediaTypeTextPlain,
+// 		},
+// 		// No file extension and explicit media type.
+// 		{
+// 			&UploadOptions{Name: "n", MediaType: "image/png"},
+// 			"upload",
+// 			defaultExpectedFormValue,
+// 			"image/png",
+// 		},
+// 		// File extension and explicit media type.
+// 		{
+// 			&UploadOptions{Name: "n", MediaType: "image/png"},
+// 			"upload.png",
+// 			defaultExpectedFormValue,
+// 			"image/png",
+// 		},
+// 		// Label provided.
+// 		{
+// 			&UploadOptions{Name: "n", Label: "l"},
+// 			"upload.txt",
+// 			values{"name": "n", "label": "l"},
+// 			mediaTypeTextPlain,
+// 		},
+// 		// No label provided.
+// 		{
+// 			defaultUploadOptions,
+// 			"upload.txt",
+// 			defaultExpectedFormValue,
+// 			mediaTypeTextPlain,
+// 		},
+// 	}
 
-	for key, test := range uploadTests {
-		releaseEndpoint := fmt.Sprintf("/repos/o/r/releases/%d/assets", key)
-		mux.HandleFunc(releaseEndpoint, func(w http.ResponseWriter, r *http.Request) {
-			testMethod(t, r, "POST")
-			testHeader(t, r, "Content-Type", test.expectedMediaType)
-			testHeader(t, r, "Content-Length", "12")
-			testFormValues(t, r, test.expectedFormValues)
-			testBody(t, r, "Upload me !\n")
+// 	client, mux, _, teardown := setup()
+// 	defer teardown()
 
-			fmt.Fprintf(w, `{"id":1}`)
-		})
+// 	for key, test := range uploadTests {
+// 		releaseEndpoint := fmt.Sprintf("/repos/o/r/releases/%d/assets", key)
+// 		mux.HandleFunc(releaseEndpoint, func(w http.ResponseWriter, r *http.Request) {
+// 			testMethod(t, r, "POST")
+// 			testHeader(t, r, "Content-Type", test.expectedMediaType)
+// 			testHeader(t, r, "Content-Length", "12")
+// 			testFormValues(t, r, test.expectedFormValues)
+// 			testBody(t, r, "Upload me !\n")
 
-		file, dir, err := openTestFile(test.fileName, "Upload me !\n")
-		if err != nil {
-			t.Fatalf("Unable to create temp file: %v", err)
-		}
-		defer os.RemoveAll(dir)
+// 			fmt.Fprintf(w, `{"id":1}`)
+// 		})
 
-		ctx := context.Background()
-		asset, _, err := client.Repositories.UploadReleaseAsset(ctx, "o", "r", int64(key), test.uploadOpts, file)
-		if err != nil {
-			t.Errorf("Repositories.UploadReleaseAssert returned error: %v", err)
-		}
-		want := &ReleaseAsset{ID: Int64(1)}
-		if !reflect.DeepEqual(asset, want) {
-			t.Errorf("Repositories.UploadReleaseAssert returned %+v, want %+v", asset, want)
-		}
-	}
-}
+// 		file, dir, err := openTestFile(test.fileName, "Upload me !\n")
+// 		if err != nil {
+// 			t.Fatalf("Unable to create temp file: %v", err)
+// 		}
+// 		defer os.RemoveAll(dir)
+
+// 		ctx := context.Background()
+// 		asset, _, err := client.Repositories.UploadReleaseAsset(ctx, "o", "r", int64(key), test.uploadOpts, file)
+// 		if err != nil {
+// 			t.Errorf("Repositories.UploadReleaseAssert returned error: %v", err)
+// 		}
+// 		want := &ReleaseAsset{ID: Int64(1)}
+// 		if !reflect.DeepEqual(asset, want) {
+// 			t.Errorf("Repositories.UploadReleaseAssert returned %+v, want %+v", asset, want)
+// 		}
+// 	}
+// }
