@@ -38,8 +38,6 @@ func TestRepositoriesService_ListReleases(t *testing.T) {
 		t.Errorf("Repositories.ListReleases returned %+v, want %+v", releases, want)
 	}
 }
-
-
 func TestRepositoriesService_GetRelease(t *testing.T) {
 	client, mux, _, teardown := setup()
 	defer teardown()
