@@ -39,6 +39,8 @@ func TestRepositoriesService_ListReleases(t *testing.T) {
 	}
 }
 
+
+
 func TestRepositoriesService_GetRelease(t *testing.T) {
 	client, mux, _, teardown := setup()
 	defer teardown()
